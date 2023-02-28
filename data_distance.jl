@@ -14,7 +14,7 @@ function make_distance_df(data)
             distance = sqrt(
                 (data[i, "RA"] - data[j, "RA"])^2 + 
                 (data[i, "DEC"] - data[j, "DEC"])^2 +
-                ustrip((data[i, "age"] - (data[j, "age"])^2))
+                (ustrip(data[i, "age"]) - ustrip(data[j, "age"]))^2
             )
 
             push!(distance_df, [i, j, distance])
