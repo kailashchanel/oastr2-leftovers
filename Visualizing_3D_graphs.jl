@@ -4,7 +4,7 @@ using CSV
 using DataFrames
 
 # Install packages
-# using Pkg
+using Pkg
 # Pkg.add("Plots")
 # Pkg.add("CSV")
 # Pkg.add("DataFrames")

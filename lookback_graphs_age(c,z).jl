@@ -4,7 +4,7 @@ using CSV
 using Plots
 
 # Install packages
-# using Pkg
+using Pkg
 # Pkg.add("Cosmology")
 # Pkg.add("CSV")
 # Pkg.add("Plots")
