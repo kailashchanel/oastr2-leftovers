@@ -51,9 +51,9 @@ p = plot(
     mode="markers",
     Layout(
         title="RA & Dec Through Time", 
-        xaxis_title="RA",
-        yaxis_title="Lookback Time (Gyr)", 
-        zaxis_title="Declination", 
+        xaxis_title="Lookback Time (Gyr)",
+        yaxis_title="RA", 
+        zaxis_title="Dec", 
         font=attr(
             family="Courier New",
             size=18,
