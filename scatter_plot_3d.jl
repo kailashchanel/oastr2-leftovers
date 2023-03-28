@@ -20,7 +20,7 @@ c = cosmology(h=0.7, OmegaM=0.3, OmegaR=0)
 age(c, 0)
 age(c, 1.42) #z = 1.42
 
-data1 = CSV.read("/path/to/GAMA_CZ5Unj.csv", DataFrame)
+data1 = CSV.read("C:\\Users\\kaila\\Downloads\\GAMA_CZ5Unj.csv", DataFrame)
 data1
 
 data1.age = age.(Ref(c), data1.Z_HELIO)
@@ -44,8 +44,8 @@ G02.raw_age = raw_age_arr
 
 p = plot(
     G02,
-    x=:RA, 
-    y=:raw_age, 
+    x=:raw_age,
+    y=:RA, 
     z=:DEC,
     type="scatter3d", 
     mode="markers",
