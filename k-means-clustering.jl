@@ -77,6 +77,16 @@ function generate_plot(data, output_file_path, n_clusters, name)
 end
 
 
+function generate_silhouette_plot(sub_counts, sub_averages, n_clusters)
+    y = Vector{Float64}()
+    for (key, val) in sub_averages
+        append!(y, val)
+    end
+    p = Plots.bar(sub_counts, y, xlabel="# in subcluster", ylabel="avg silhouette score")
+    Plots.savefig(p, string("./output/", n_clusters, "-subcluster-averages.png"))
+end
+
+
 "Returns the silhouette score of n clusters in the data"
 function calc_silhouette_scores(P, data_matrix, n_clusters::Int)::NamedTuple
     R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
@@ -134,7 +144,11 @@ function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
         R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
         data.assignments = assignments(R)
         generate_plot(data, "output/" * string(n_clusters) * ".html", n_clusters, "")
-        str_output *= string(n_clusters) * ": " * string(silhouettes[n_clusters].sub_averages) * "\n"
+        
+        silhouette_data = silhouettes[n_clusters]
+
+        generate_silhouette_plot(silhouette_data.counts, silhouette_data.sub_averages, n_clusters)
+        str_output *= string(n_clusters) * ": " * string(silhouette_data.sub_averages) * "\n"
     end
 
     open("output/silhouette_scores.txt", "w") do io
@@ -162,7 +176,7 @@ function main()
     G23 = data[((data[!, "RA"].<351.9) .& (data[!, "RA"].>338.1) .& (data[!, "DEC"].<-30.0) .& (data[!, "DEC"].> -35.0)),:]
 
     println("Generating graphs...")
-    find_optimal_clusters(G02, "G02", 2, 100)
+    find_optimal_clusters(G02, "G02", 2, 10)
 
     println("Program complete.")
 end
