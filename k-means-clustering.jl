@@ -104,7 +104,7 @@ function calc_silhouette_scores(P, data_matrix, n_clusters::Int)::NamedTuple
 end
 
 
-function find_clusters(data, name, gen_plot::Bool, gen_silhouette_plot::Bool)
+function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
     println("Converting Vectors to 3-row coordinate Matrix...")
     data_matrix = Matrix{Float64}(undef, 3, 0)
     for n in eachindex(data[!, "RA"])
@@ -112,8 +112,34 @@ function find_clusters(data, name, gen_plot::Bool, gen_silhouette_plot::Bool)
         data_matrix = hcat(data_matrix, A)
     end
     
+    silhouettes = Dict()      # Key: silhouette ID, Value: silhouette data
+    silhoutte_means = Dict()  # Key: silhouette ID, Value: silhouette mean
+
     P = load_dist_matrix(string("./data/", name, "-", "distance-matrix.jld"))
-    println(calc_silhouette_scores(P, data_matrix, 50))
+
+    for i in min_clusters:max_clusters
+        println("Calculating cluster $i")
+        silhouette_data = calc_silhouette_scores(P, data_matrix, i)
+
+        silhouettes[i] = silhouette_data
+        silhoutte_means[i] = silhouette_data.total_average
+    end
+
+    str_output = ""
+
+    for (i, (n_clusters, val)) in enumerate(sort(silhoutte_means; byvalue=true))
+        if i > 10
+            break
+        end
+        R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
+        data.assignments = assignments(R)
+        generate_plot(data, "output/" * string(n_clusters) * ".html", n_clusters, "")
+        str_output *= string(n_clusters) * ": " * string(silhouettes[n_clusters].sub_averages) * "\n"
+    end
+
+    open("output/silhouette_scores.txt", "w") do io
+        write(io, str_output)
+    end
 end
 
 
@@ -136,11 +162,7 @@ function main()
     G23 = data[((data[!, "RA"].<351.9) .& (data[!, "RA"].>338.1) .& (data[!, "DEC"].<-30.0) .& (data[!, "DEC"].> -35.0)),:]
 
     println("Generating graphs...")
-    find_clusters(G02, "G02", true, true)
-    # generate_graph(G09, "g09-radial.html", "G09")
-    # generate_graph(G12, "g12-radial.html", "G12")
-    # generate_graph(G15, "g15-radial.html", "G15")
-    # generate_graph(G23, "g23-radial.html", "G23")
+    find_optimal_clusters(G02, "G02", 2, 100)
 
     println("Program complete.")
 end
