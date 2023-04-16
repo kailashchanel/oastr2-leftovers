@@ -135,6 +135,8 @@ function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
         silhoutte_means[i] = silhouette_data.total_average
     end
 
+    # Come up with the output
+    # TODO: Refactor this in the future
     str_output = ""
 
     for (i, (n_clusters, val)) in enumerate(sort(silhoutte_means; byvalue=true))
