@@ -1,16 +1,11 @@
-using Cosmology
-using DataFrames
-using CSV
-using Plots
+#=
+Generate a 3D scatter plot of RA, Dec, and age.
+=#
 
-# Install packages
 using Pkg
-# Pkg.add("Cosmology")
-# Pkg.add("CSV")
-# Pkg.add("Plots")
-# Pkg.add("DataFrames")
+Pkg.add(["Cosmology", "CSV", "Plots", "DataFrames"])
 
-Pkg.status()
+using Cosmology, DataFrames, CSV, Plots
 
 #define cosmological model. For this example I will use the Planck 2015 
 #cosmological parameters but this can be easily modified. 

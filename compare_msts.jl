@@ -1,3 +1,9 @@
+#=
+A file to compare MSTs. Used for
+comparing the non-brute force algorithm vs the brute force algorithm
+for calculating distance matrix.
+=#
+
 import Pkg
 Pkg.add(["Graphs", "SimpleWeightedGraphs"])
 using Graphs, SimpleWeightedGraphs

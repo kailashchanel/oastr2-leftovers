@@ -1,3 +1,7 @@
+#=
+Generates a MST from the output of the brute-force distance matrix algorithm.
+=#
+
 import Pkg
 Pkg.add(["Graphs", "SimpleWeightedGraphs", "DataFrames"])
 
@@ -50,7 +54,6 @@ function generate_mst(graph)
 end
 
 function main()
-    # data = CSV.read("sophia_edge_weights.csv", DataFrame)
     data = get_df_from_dir("C:\\users\\d8amo\\Desktop\\Programming\\Julia\\Astrophysics\\3D MST\\G15")
 
     graph = generate_graph(data)

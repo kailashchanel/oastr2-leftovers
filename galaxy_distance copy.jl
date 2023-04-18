@@ -1,3 +1,7 @@
+#=
+Calculates the distance between galaxies
+=#
+
 using CSV, DataFrames, Cosmology, JLD2
 
 data = CSV.read("GAMA_CZ5Unj.csv", DataFrame)
@@ -31,9 +35,9 @@ end
 
 distance_list = GalaxyDistance[]
 
-for i in 1:datalen-1
+for i in 1:datalen - 1
     println("i = $i")
-    for j in i+1:datalen
+    for j in i + 1:datalen
         # Find the separation in the sky
         # RA and Dec are in degrees
         deltaRA = abs(ra[i] - ra[j])
@@ -46,9 +50,8 @@ for i in 1:datalen-1
         
         distance = sqrt(sep_transverse^2 + (abs(dist[i] - abs(dist[j]))^2))
 
-        push!(distance_list,GalaxyDistance(i,j,distance_matrix[i,j]))
+        push!(distance_list, GalaxyDistance(i, j, distance_matrix[i,j]))
     end
 end
 
 save_object("distance_list.jld2", distance_list)
-

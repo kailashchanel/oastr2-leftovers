@@ -1,3 +1,9 @@
+#=
+Create an MST from the data.
+
+This file is not in use and should only be used as a reference for future code.
+=#
+
 import Pkg
 Pkg.add("Graphs")
 Pkg.add("SimpleGraphs")
@@ -35,7 +41,7 @@ Pkg.add("Cosmology")
 using Cosmology
 c = cosmology(h=0.7, OmegaM=0.3, OmegaR=0)
 
-data1 = CSV.read("/Users/sophiestrey/Desktop/data/ASTROPHYSICS/leftovers/GAMA_CZ5Unj.csv", DataFrame)
+data1 = CSV.read("GAMA_CZ5Unj.csv", DataFrame)
 data1.age = age.(Ref(c), data1.Z_HELIO)
 data1
 

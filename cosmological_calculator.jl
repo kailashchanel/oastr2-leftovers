@@ -1,3 +1,7 @@
+#=
+Calculate the age of a galaxy from redshift.
+=#
+
 import Pkg
 Pkg.add("Cosmology")
 Pkg.add("Measurement")

@@ -1,3 +1,8 @@
+#=
+A non-brute force way to create a distance matrix. This does not produce
+a "full" MST when converted to an MST, so it is best to not use this file. 
+=#
+
 using CSV, DataFrames, Cosmology, JLD2
 
 data = CSV.read("GAMA_CZ5Unj.csv", DataFrame)

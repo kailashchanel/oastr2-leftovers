@@ -1,3 +1,9 @@
+#=
+A multithreaded, brute-force program to calculate the distance matrix.
+Calculating distance matrices will take less than 1 hour with 20 threads at
+4.8 GHz.
+=#
+
 using Pkg
 Pkg.add(["CSV", "DataFrames", "Cosmology", "Unitful"])
 using CSV, DataFrames, Cosmology, Unitful
