@@ -87,7 +87,7 @@ function generate_silhouette_plot(sub_counts, sub_averages, n_clusters)
         append!(y, val)
     end
     p = Plots.bar(sub_counts, y, xlabel="# in subcluster", ylabel="avg silhouette score")
-    Plots.savefig(p, string("./output/", n_clusters, "-subcluster-averages.png"))
+    Plots.savefig(p, string("../output/", n_clusters, "-subcluster-averages.png"))
 end
 
 
@@ -129,7 +129,7 @@ function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
     silhouettes = Dict()      # Key: silhouette ID, Value: silhouette data
     silhoutte_means = Dict()  # Key: silhouette ID, Value: silhouette mean
 
-    P = load_dist_matrix(string("./data/", name, "-", "distance-matrix.jld"))
+    P = load_dist_matrix(string("../data/", name, "-", "distance-matrix.jld"))
 
     for i in min_clusters:max_clusters
         println("Calculating cluster $i")
@@ -149,7 +149,7 @@ function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
         end
         R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
         data.assignments = assignments(R)
-        generate_plot(data, "output/" * string(n_clusters) * ".html", n_clusters, "")
+        generate_plot(data, "../output/" * string(n_clusters) * ".html", n_clusters, "")
         
         silhouette_data = silhouettes[n_clusters]
 
@@ -157,7 +157,7 @@ function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
         str_output *= string(n_clusters) * ": " * string(silhouette_data.sub_averages) * "\n"
     end
 
-    open("output/silhouette_scores.txt", "w") do io
+    open("../output/silhouette_scores.txt", "w") do io
         write(io, str_output)
     end
 end
@@ -167,7 +167,7 @@ function main()
     #define cosmological model. For this example I will use the Planck 2015 
     #cosmological parameters but this can be easily modified. 
 
-    data = CSV.read("GAMA_CZ5Unj.csv", DataFrame)
+    data = CSV.read("../data/GAMA_CZ5Unj.csv", DataFrame)
 
     println("Calculating radial distance...")
     add_dist!(cosmology(h=0.7, OmegaM=0.3, OmegaR=0), data)
