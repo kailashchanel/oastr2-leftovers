@@ -22,9 +22,9 @@ function add_xyz!(data)
 
     println("Converting spherical coordinates to rectangular coordinates...")
     for n in eachindex(data.dist)
-        val_x = data.dist[n] * sin(deg2rad(180 - data[!, "DEC"][n])) * cos(deg2rad(data[!, "RA"][n]))
-        val_y = data.dist[n] * sin(deg2rad(180 - data[!, "DEC"][n])) * sin(deg2rad(data[!, "RA"][n]))
-        val_z = data.dist[n] * cos(deg2rad(180 - data[!, "DEC"][n]))
+        val_x = data.dist[n] * sin(deg2rad(90 - data[!, "DEC"][n])) * cos(deg2rad(data[!, "RA"][n]))
+        val_y = data.dist[n] * sin(deg2rad(90 - data[!, "DEC"][n])) * sin(deg2rad(data[!, "RA"][n]))
+        val_z = data.dist[n] * cos(deg2rad(90 - data[!, "DEC"][n]))
 
         append!(X, val_x)
         append!(Y, val_y)
