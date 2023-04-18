@@ -1,3 +1,8 @@
+#=
+This file's purpose is to create a 3D graph where the x axis is age,
+the y axis is Right Ascention, and the z axis is Declination. 
+=#
+
 using Pkg
 Pkg.add(["Cosmology", "DataFrames", "CSV", "Unitful", "PlotlyJS"])
 

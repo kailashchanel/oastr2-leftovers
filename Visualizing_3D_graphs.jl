@@ -1,15 +1,14 @@
-using Plots
-using Random
-using CSV
-using DataFrames
+#=
+Visualize a 3D graph of RA, Dec, and redshift.
+=#
 
 # Install packages
-using Pkg
-# Pkg.add("Plots")
-# Pkg.add("CSV")
-# Pkg.add("DataFrames")
+import Pkg
+Pkg.add("Plots")
+Pkg.add("CSV")
+Pkg.add("DataFrames")
 
-Pkg.status()
+using Plots, Random, CSV, DataFrames
 
 X = rand(100)
 Y = rand(100)
@@ -17,17 +16,13 @@ Z = rand(100)
 
 scatter(X,Y,Z)
 
-data1 = CSV.read("path/to/data/file.csv", DataFrame)
+data1 = CSV.read("GAMA_CZ5Unj.csv", DataFrame)
 
 x = data1[!, "RA"]
 y = data1[!, "DEC"]
 scatter(x,y)
 
 G02 = data1[((data1[!, "RA"] .< 38.8) .& (data1[!, "RA"].>30.2) .& (data1[!, "DEC"].<-3.72) .& (data1[!, "DEC"].>-10.25)),:]
-
-
-typeof(data1)
-
 
 scatter(G02[!,"RA"], G02[!, "DEC"])
 

@@ -1,18 +1,13 @@
-print("Install packages? (y/n) | ")
-res = readline()
+#=
+Creates a plot of the redshift distributions in the dataset.
+=#
 
-if cmp(res, "y") == 0
-    using Pkg
-    Pkg.add(["Distributions", "DataFrames", "Plots", "StatsPlots", "CSV"])
-end
+using Pkg
+Pkg.add(["Distributions", "DataFrames", "Plots", "StatsPlots", "CSV"])
 
-using DataFrames
-using Distributions
-using Plots
-using StatsPlots
-using CSV
+using DataFrames, Distributions, Plots, StatsPlots, CSV
 
-data1 = CSV.read("/path/to/file/GAMA_CZ5Unj.csv", DataFrame)
+data1 = CSV.read("GAMA_CZ5Unj.csv", DataFrame)
 
 G02 = data1[((data1[!, "RA"] .< 38.8) .& (data1[!, "RA"].>30.2) .& (data1[!, "DEC"].<-3.72) .& (data1[!, "DEC"].>-10.25)),:]
 G09 = data1[((data1[!, "RA"].<141.0) .& (data1[!, "RA"].>129.0) .& (data1[!, "DEC"].<3.0) .& (data1[!, "DEC"].>-2.0)),:]

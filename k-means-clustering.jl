@@ -1,3 +1,7 @@
+#=
+Finds the 10 most optimal number of clusters for the dataset for a human to review.
+=#
+
 using Pkg
 Pkg.add(["Clustering", "Cosmology", "DataFrames", "CSV", "Unitful", "PlotlyJS", "JLD", "Distances", "Plots"])
 

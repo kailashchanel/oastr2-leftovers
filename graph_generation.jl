@@ -1,23 +1,15 @@
-import Pkg
-Pkg.add("Graphs")
-Pkg.add("SimpleGraphs")
-Pkg.add("GraphPlot")
-Pkg.add("CSV")
-Pkg.add("DataFrames")
-Pkg.add("Cosmology")
+#=
+Generate an MST of the dataset. Note that this file generates a subset of the "actual" MST.
+=#
 
-using Graphs
-using SimpleGraphs
-using GraphPlot
-using CSV
-using DataFrames
-using Cosmology
+import Pkg
+Pkg.add(["Graphs", "SimpleGraphs", "GraphPlot", "CSV", "DataFrames", "Cosmology", "Plots", "SGtSNEpi", "GLMakie"])
+using Graphs, SimpleGraphs, GraphPlot, CSV, DataFrames, Cosmology, Plots, GLMakie, SGtSNEpi
 
 c = cosmology(h=0.7, OmegaM=0.3, OmegaR=0)
 
 data1 = CSV.read("GAMA_CZ5Unj.csv", DataFrame)
 data1.age = age.(Ref(c), data1.Z_HELIO)
-data1
 
 G15 = data1[((data1[!, "RA"].<223.5) .& (data1[!, "RA"].>211.5) .& (data1[!, "DEC"].<3.0) .& (data1[!, "DEC"].>-2.0)),:]
 
@@ -30,23 +22,13 @@ df = select(G15,([:RA,:DEC]))
 dfT = DataFrame(t, :auto)
 matrix = Matrix(dfT)
 
-@time g,dists = euclidean_graph(matrix[:,1:10000])
-
-g
-
-Pkg.add("Plots")
-using Plots
+@time g, dists = euclidean_graph(matrix[:,1:10000])
 
 edgelist = collect(edges(g))
 
 [[src(e), dst(e)] for e in edgelist]
 
 @time k,dists = euclidean_graph(matrix[:,1:1000])
-
-Pkg.add("SGtSNEpi")
-Pkg.add("GLMakie")
-
-using GLMakie, SGtSNEpi
 
 GLMakie.activate!()
 
@@ -55,6 +37,4 @@ show_embedding(y;
   A = adjacency_matrix(g),        # show edges on embedding
   mrk_size = 1,                   # control node sizes
   lwd_in = 0.01, lwd_out = 0.001, # control edge widths
-  edge_alpha = 0.4 )             # control edge transparency
-
-
+  edge_alpha = 0.4 )              # control edge transparency
