@@ -1,0 +1,8 @@
+.jld
+
+# Ignore stuff in the output dir
+/output
+/data
+
+# Ignore input data
+GAMA_CZ5Unj.csv
