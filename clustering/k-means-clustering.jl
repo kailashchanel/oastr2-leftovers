@@ -157,7 +157,7 @@ function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
     str_output = ""
 
     for (i, (n_clusters, val)) in enumerate(sort(silhoutte_means; byvalue=true))
-        if i > 2
+        if i > 10
             break
         end
         R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
