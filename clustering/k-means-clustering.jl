@@ -2,8 +2,8 @@
 Finds the 10 most optimal number of clusters for the dataset for a human to review.
 =#
 
-using Pkg
-Pkg.add(["Clustering", "Cosmology", "DataFrames", "CSV", "Unitful", "PlotlyJS", "JLD", "Distances", "Plots"])
+# using Pkg
+# Pkg.add(["Clustering", "Cosmology", "DataFrames", "CSV", "Unitful", "PlotlyJS", "JLD", "Distances", "Plots"])
 
 using Clustering, Cosmology, DataFrames, Distances, CSV, JLD, Statistics, Unitful, PlotlyJS
 import Plots
@@ -65,9 +65,22 @@ function generate_plot(data, output_file_path, n_clusters, name)
         mode="markers",
         Layout(
             title=string("Galaxies Plotted in 3D Space (", n_clusters, " clusters): ", name), 
-            # xaxis=attr(title="Radial Distance"),
-            # yaxis=attr(title="RA"),
-            # zaxis=attr(title="Dec"),
+            scene = attr(
+                aspectmode="manual",
+                aspectratio=attr(x=1, y=1, z=1),
+                xaxis_title="x: Distance (Mpc)",
+                yaxis_title="y: Distance (Mpc)",
+                zaxis_title="z: Distance (Mpc)",
+                xaxis=attr(
+                    range=[0,7000]
+                ),
+                yaxis=attr(
+                    range=[0, 7000]
+                ),
+                zaxis=attr(
+                    range=[-7000, 0]
+                )
+            ),
             font=attr(
                 family="Courier New",
                 size=18,
@@ -87,7 +100,7 @@ function generate_silhouette_plot(sub_counts, sub_averages, n_clusters)
         append!(y, val)
     end
     p = Plots.bar(sub_counts, y, xlabel="# in subcluster", ylabel="avg silhouette score")
-    Plots.savefig(p, string("../output/", n_clusters, "-subcluster-averages.png"))
+    Plots.savefig(p, string(pwd(), "/output/", n_clusters, "-subcluster-averages.png"))
 end
 
 
@@ -129,10 +142,10 @@ function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
     silhouettes = Dict()      # Key: silhouette ID, Value: silhouette data
     silhoutte_means = Dict()  # Key: silhouette ID, Value: silhouette mean
 
-    P = load_dist_matrix(string("../data/", name, "-", "distance-matrix.jld"))
+    P = load_dist_matrix(string(pwd(), "/data/", name, "-", "distance-matrix.jld"))
 
     for i in min_clusters:max_clusters
-        println("Calculating cluster $i")
+        println("Calculating for $i clusters...")
         silhouette_data = calc_silhouette_scores(P, data_matrix, i)
 
         silhouettes[i] = silhouette_data
@@ -144,20 +157,20 @@ function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
     str_output = ""
 
     for (i, (n_clusters, val)) in enumerate(sort(silhoutte_means; byvalue=true))
-        if i > 10
+        if i > 2
             break
         end
         R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
         data.assignments = assignments(R)
-        generate_plot(data, "../output/" * string(n_clusters) * ".html", n_clusters, "")
+        generate_plot(data, string(pwd(), "/output/", name, "-", n_clusters, ".html"), n_clusters, name)
         
         silhouette_data = silhouettes[n_clusters]
 
         generate_silhouette_plot(silhouette_data.counts, silhouette_data.sub_averages, n_clusters)
-        str_output *= string(n_clusters) * ": " * string(silhouette_data.sub_averages) * "\n"
+        str_output *= string(n_clusters, " (", string(silhoutte_means[n_clusters]), ")") * ": " * string(silhouette_data.sub_averages) * "\n"
     end
 
-    open("../output/silhouette_scores.txt", "w") do io
+    open(string(pwd(), "/output/silhouette_scores.txt"), "w") do io
         write(io, str_output)
     end
 end
@@ -167,7 +180,7 @@ function main()
     #define cosmological model. For this example I will use the Planck 2015 
     #cosmological parameters but this can be easily modified. 
 
-    data = CSV.read("../data/GAMA_CZ5Unj.csv", DataFrame)
+    data = CSV.read(string(pwd(), "/data/GAMA_CZ5Unj.csv"), DataFrame)
 
     println("Calculating radial distance...")
     add_dist!(cosmology(h=0.7, OmegaM=0.3, OmegaR=0), data)
@@ -181,11 +194,50 @@ function main()
     G15 = data[((data[!, "RA"].<223.5) .& (data[!, "RA"].>211.5) .& (data[!, "DEC"].<3.0) .& (data[!, "DEC"].>-2.0)),:]
     G23 = data[((data[!, "RA"].<351.9) .& (data[!, "RA"].>338.1) .& (data[!, "DEC"].<-30.0) .& (data[!, "DEC"].> -35.0)),:]
 
-    println("Generating graphs...")
-    find_optimal_clusters(G02, "G02", 2, 10)
+    println("Finding the optimal # of clusters...")
+    find_optimal_clusters(G02, "G02", 3, 3)
 
-    println("Program complete.")
+    println("\nProgram complete.")
 end
 
 
 main()
+
+
+"isolated graph testing"
+# n_clusters = 5
+# name = "test"
+# output_file_path = string(pwd(), "/output/", name, "-", n_clusters, ".html")
+
+# data = DataFrame(X=1:5, Y=26:30, Z=[1, 5, 20, 50, 600], assignments=1:5)
+
+# p = plot(
+#     data,
+#     x=:X,
+#     y=:Y, 
+#     z=:Z,
+#     color=:assignments,
+#     type="scatter3d", 
+#     mode="markers",
+#     Layout(
+#         title=string("Galaxies Plotted in 3D Space (", n_clusters, " clusters): ", name), 
+#         scene = attr(
+#             aspectmode="manual",
+#             aspectratio=attr(x=1, y=1, z=1),
+#             xaxis_title="x: Distance (Mpc)",
+#             yaxis_title="y: Distance (Mpc)",
+#             zaxis_title="z: Distance (Mpc)",
+#         ),
+#         font=attr(
+#             family="Courier New",
+#             size=18
+#         ),
+#         # xaxis=attr(scaleanchor="y"),
+#         # yaxis=attr(scaleanchor="z"),
+#         # zaxis=attr(scaleanchor="x")
+#     )
+# )
+
+# open(output_file_path, "w") do io
+#     PlotlyBase.to_html(io, p.plot)
+# end
