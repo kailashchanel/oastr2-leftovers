@@ -5,7 +5,7 @@ Finds the 10 most optimal number of clusters for the dataset for a human to revi
 # using Pkg
 # Pkg.add(["Clustering", "Cosmology", "DataFrames", "CSV", "Unitful", "PlotlyJS", "JLD", "Distances", "Plots"])
 
-using Clustering, Cosmology, DataFrames, Distances, CSV, JLD, Statistics, Unitful, PlotlyJS
+using Clustering, Cosmology, DataFrames, Distances, CSV, JLD, Statistics, Unitful, PlotlyJS, Dates
 import Plots
 
 "Add radial distance values to the dataset"
@@ -66,8 +66,8 @@ function generate_plot(data, output_file_path, n_clusters, name)
         Layout(
             title=string("Galaxies Plotted in 3D Space (", n_clusters, " clusters): ", name), 
             scene = attr(
-                aspectmode="manual",
-                aspectratio=attr(x=1, y=1, z=1),
+                # aspectmode="cube",
+                # aspectratio=attr(x=1, y=1, z=1),
                 xaxis_title="x: Distance (Mpc)",
                 yaxis_title="y: Distance (Mpc)",
                 zaxis_title="z: Distance (Mpc)",
@@ -105,28 +105,34 @@ end
 
 
 "Returns the silhouette score of n clusters in the data"
-function calc_silhouette_scores(P, data_matrix, n_clusters::Int)::NamedTuple
-    R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
+function calc_silhouette_scores(P, data, name, n_clusters::Int)::NamedTuple
+    # R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
+    R = kmedoids(P, n_clusters; maxiter=200, display=:iter)
     println(string("# of clusters: ", n_clusters))
     println(string("# in each cluster: ", counts(R)))
     
     println("Calculating silhouette scores...")
     S = silhouettes(R, P)
 
+    # data.assignments = assignments(R)
+    # generate_plot(data, string(pwd(), "/output/", name, "-", n_clusters, ".html"), n_clusters, name)
+    
     subclusters = Dict{Integer, Vector}()
     for n in 1:n_clusters
         subclusters[n] = Vector{Float64}()
     end
-
+    
     for n in eachindex(S)
         append!(subclusters[assignments(R)[n]], S[n])
     end
-
+    
     sub_averages = Dict{Integer, Float64}()
     for (group_num, value) in subclusters
         sub_averages[group_num] = mean(value)
     end
-
+    
+    # generate_silhouette_plot(counts(R), sub_averages, n_clusters)    
+    
     return (total_average = mean(S), sub_averages = sub_averages, counts = counts(R))
 end
 
@@ -145,8 +151,9 @@ function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
     P = load_dist_matrix(string(pwd(), "/data/", name, "-", "distance-matrix.jld"))
 
     for i in min_clusters:max_clusters
+        time_log("Beginning calculations for $i clusters")
         println("Calculating for $i clusters...")
-        silhouette_data = calc_silhouette_scores(P, data_matrix, i)
+        silhouette_data = calc_silhouette_scores(P, data, name, i)
 
         silhouettes[i] = silhouette_data
         silhoutte_means[i] = silhouette_data.total_average
@@ -156,25 +163,40 @@ function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
     # TODO: Refactor this in the future
     str_output = ""
 
+    "generate list of top 10 global silhouette scores"
     for (i, (n_clusters, val)) in enumerate(sort(silhoutte_means; byvalue=true))
         if i > 10
             break
         end
-        R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
-        data.assignments = assignments(R)
-        generate_plot(data, string(pwd(), "/output/", name, "-", n_clusters, ".html"), n_clusters, name)
+        # R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
+        # R = kmedoids(P, n_clusters; maxiter=200, display=:iter)
+        # data.assignments = assignments(R)
+        # generate_plot(data, string(pwd(), "/output/", name, "-", n_clusters, ".html"), n_clusters, name)
         
         silhouette_data = silhouettes[n_clusters]
 
-        generate_silhouette_plot(silhouette_data.counts, silhouette_data.sub_averages, n_clusters)
+        # generate_silhouette_plot(silhouette_data.counts, silhouette_data.sub_averages, n_clusters)
         str_output *= string(n_clusters, " (", string(silhoutte_means[n_clusters]), ")") * ": " * string(silhouette_data.sub_averages) * "\n"
     end
 
-    open(string(pwd(), "/output/silhouette_scores.txt"), "w") do io
+    open(string(pwd(), "/output/silhouette_scores.txt"), "a") do io
         write(io, str_output)
     end
+
+    avg_scores = Float64[]
+    for (i, val) in silhoutte_means
+        append!(avg_scores, val)
+    end
+
+    p = Plots.plot(min_clusters:max_clusters, avg_scores, xlabel="Number of clusters (k)", ylabel="Silhouette score", legend=false)
+    Plots.savefig(p, string(pwd(), "/output/", name, "-global-silhouette-averages.png"))
 end
 
+function time_log(msg)
+    open(string(pwd(), "/output/time_log.txt"), "a") do io
+        write(io, string(now(), ": $msg\n"))
+    end
+end
 
 function main()
     #define cosmological model. For this example I will use the Planck 2015 
@@ -194,9 +216,14 @@ function main()
     G15 = data[((data[!, "RA"].<223.5) .& (data[!, "RA"].>211.5) .& (data[!, "DEC"].<3.0) .& (data[!, "DEC"].>-2.0)),:]
     G23 = data[((data[!, "RA"].<351.9) .& (data[!, "RA"].>338.1) .& (data[!, "DEC"].<-30.0) .& (data[!, "DEC"].> -35.0)),:]
 
-    println("Finding the optimal # of clusters...")
-    find_optimal_clusters(G02, "G02", 3, 3)
+    println(string("Logging start time: ", now()))
+    time_log("Program begins")
 
+    println("Finding the optimal # of clusters...")
+    find_optimal_clusters(G02, "G02", 21, 35)
+
+    println(string("Logging end time: ", now()))
+    time_log("Program ends")
     println("\nProgram complete.")
 end
 
@@ -204,7 +231,17 @@ end
 main()
 
 
-"isolated graph testing"
+"isolated graph/plot testing"
+# println(now())
+
+# min_clusters = 10
+# max_clusters = 12
+
+# avg_scores = [0.567, 0.63287, 0.89723]
+# p = Plots.plot(min_clusters:max_clusters, avg_scores, xlabel="Number of clusters (k)", ylabel="Silhouette score", legend=false)
+# Plots.savefig(p, string(pwd(), "/output/test-cluster-averages.png"))
+
+
 # n_clusters = 5
 # name = "test"
 # output_file_path = string(pwd(), "/output/", name, "-", n_clusters, ".html")
