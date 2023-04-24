@@ -1,9 +1,11 @@
 #=
 Finds the 10 most optimal number of clusters for the dataset for a human to review.
+This program utilizes multithreading, so when the program is calculating the most optimal
+clusters, the console output will be unintelligible.
 =#
 
-# using Pkg
-# Pkg.add(["Clustering", "Cosmology", "DataFrames", "CSV", "Unitful", "PlotlyJS", "JLD", "Distances", "Plots"])
+import Pkg
+Pkg.add(["Clustering", "Cosmology", "DataFrames", "CSV", "Unitful", "PlotlyJS", "JLD", "Distances", "Plots"])
 
 using Clustering, Cosmology, DataFrames, Distances, CSV, JLD, Statistics, Unitful, PlotlyJS, Dates
 import Plots
@@ -105,17 +107,13 @@ end
 
 
 "Returns the silhouette score of n clusters in the data"
-function calc_silhouette_scores(P, data, name, n_clusters::Int)::NamedTuple
-    # R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
+function calc_silhouette_scores(P, n_clusters::Int)::NamedTuple
     R = kmedoids(P, n_clusters; maxiter=200, display=:iter)
     println(string("# of clusters: ", n_clusters))
     println(string("# in each cluster: ", counts(R)))
     
     println("Calculating silhouette scores...")
     S = silhouettes(R, P)
-
-    # data.assignments = assignments(R)
-    # generate_plot(data, string(pwd(), "/output/", name, "-", n_clusters, ".html"), n_clusters, name)
     
     subclusters = Dict{Integer, Vector}()
     for n in 1:n_clusters
@@ -129,62 +127,33 @@ function calc_silhouette_scores(P, data, name, n_clusters::Int)::NamedTuple
     sub_averages = Dict{Integer, Float64}()
     for (group_num, value) in subclusters
         sub_averages[group_num] = mean(value)
-    end
-    
-    # generate_silhouette_plot(counts(R), sub_averages, n_clusters)    
+    end  
     
     return (total_average = mean(S), sub_averages = sub_averages, counts = counts(R))
 end
 
-
-function find_optimal_clusters(data, name, min_clusters::Int, max_clusters::Int)
-    println("Converting Vectors to 3-row coordinate Matrix...")
-    data_matrix = Matrix{Float64}(undef, 3, 0)
-    for n in eachindex(data[!, "RA"])
-        A = [data[!, "X"][n]; data[!, "Y"][n]; data[!, "Z"][n];]
-        data_matrix = hcat(data_matrix, A)
-    end
-    
-    silhouettes = Dict()      # Key: silhouette ID, Value: silhouette data
-    silhoutte_means = Dict()  # Key: silhouette ID, Value: silhouette mean
-
-    P = load_dist_matrix(string(pwd(), "/data/", name, "-", "distance-matrix.jld"))
-
-    for i in min_clusters:max_clusters
-        time_log("Beginning calculations for $i clusters")
-        println("Calculating for $i clusters...")
-        silhouette_data = calc_silhouette_scores(P, data, name, i)
-
-        silhouettes[i] = silhouette_data
-        silhoutte_means[i] = silhouette_data.total_average
-    end
-
-    # Come up with the output
-    # TODO: Refactor this in the future
+"Generate list of top 10 global silhouette scores"
+function generate_top10_global_scores(silhouette_means, silhouettes)
     str_output = ""
-
-    "generate list of top 10 global silhouette scores"
-    for (i, (n_clusters, val)) in enumerate(sort(silhoutte_means; byvalue=true))
+    
+    for (i, (n_clusters, val)) in enumerate(sort(silhouette_means; byvalue=true))
         if i > 10
             break
         end
-        # R = kmeans(data_matrix, n_clusters; maxiter=200, display=:iter)
-        # R = kmedoids(P, n_clusters; maxiter=200, display=:iter)
-        # data.assignments = assignments(R)
-        # generate_plot(data, string(pwd(), "/output/", name, "-", n_clusters, ".html"), n_clusters, name)
         
         silhouette_data = silhouettes[n_clusters]
-
-        # generate_silhouette_plot(silhouette_data.counts, silhouette_data.sub_averages, n_clusters)
-        str_output *= string(n_clusters, " (", string(silhoutte_means[n_clusters]), ")") * ": " * string(silhouette_data.sub_averages) * "\n"
+        str_output *= string(n_clusters, " (", string(silhouette_means[n_clusters]), ")") * ": " * string(silhouette_data.sub_averages) * "\n"
     end
 
     open(string(pwd(), "/output/silhouette_scores.txt"), "a") do io
         write(io, str_output)
     end
+end
 
+"Generates the silhouette score histogram"
+function generate_silhouette_score_histogram(name, silhouette_means, min_clusters, max_clusters)
     avg_scores = Float64[]
-    for (i, val) in silhoutte_means
+    for (i, val) in silhouette_means
         append!(avg_scores, val)
     end
 
@@ -196,6 +165,28 @@ function time_log(msg)
     open(string(pwd(), "/output/time_log.txt"), "a") do io
         write(io, string(now(), ": $msg\n"))
     end
+end
+
+"Generate the outputs given the silhouette means and the silhouettes"
+function generate_output(name, silhouettes, silhouette_means, min_clusters, max_clusters) 
+    generate_top10_global_scores(silhouette_means, silhouettes)
+    generate_silhouette_score_histogram(name, silhouette_means, min_clusters, max_clusters)
+end
+
+function find_optimal_clusters(P, min_clusters::Int, max_clusters::Int)   
+    silhouettes = Dict()      # Key: silhouette ID, Value: silhouette data
+    silhouette_means = Dict()  # Key: silhouette ID, Value: silhouette mean
+
+    Threads.@threads for i in min_clusters:max_clusters
+        time_log("Beginning calculations for $i clusters")
+        println("Calculating for $i clusters...")
+        silhouette_data = calc_silhouette_scores(P, i)
+
+        silhouettes[i] = silhouette_data
+        silhouette_means[i] = silhouette_data.total_average
+    end
+
+    return silhouettes, silhouette_means
 end
 
 function main()
@@ -220,8 +211,19 @@ function main()
     time_log("Program begins")
 
     println("Finding the optimal # of clusters...")
-    find_optimal_clusters(G02, "G02", 21, 35)
+    
+    name = "G02"
+    min_clusters = 20
+    max_clusters = 100
 
+    silhouettes, silhouette_means = find_optimal_clusters(
+        load_dist_matrix(string(pwd(), "/data/G02-distance-matrix.jld")), 
+        min_clusters, max_clusters
+    )
+
+    println("Generating output")
+    generate_output(name, silhouettes, silhouette_means, min_clusters, max_clusters)
+    
     println(string("Logging end time: ", now()))
     time_log("Program ends")
     println("\nProgram complete.")
@@ -231,7 +233,6 @@ end
 main()
 
 
-"isolated graph/plot testing"
 # println(now())
 
 # min_clusters = 10
