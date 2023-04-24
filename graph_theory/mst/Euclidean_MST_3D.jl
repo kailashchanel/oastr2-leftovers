@@ -50,7 +50,6 @@ G15 = data1[((data1[!, "RA"].<223.5) .& (data1[!, "RA"].>211.5) .& (data1[!, "DE
 pts = G15[G15[!, "RA"]], G15[G15[!, "DEC"]]
 
 g, dists = euclidean_graph(pts, p=2, bc=:periodic);
-g
 
 G15_matrix=Matrix(G15)
 

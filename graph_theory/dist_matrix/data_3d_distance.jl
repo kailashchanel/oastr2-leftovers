@@ -1,7 +1,8 @@
-# This file differs from data_distance.jl in that it
-# calculates the actual 3D distance between two galaxies. It does not use
-# cosmological lookback time, but instead it calculates distance
-# from redshift.
+#=
+A multithreaded, brute-force program to calculate the distance matrix.
+Calculating distance matrices will take less than 1 hour with 20 threads at
+4.8 GHz.
+=#
 
 using Pkg
 Pkg.add(["CSV", "DataFrames", "Cosmology", "Unitful"])
