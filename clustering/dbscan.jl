@@ -47,8 +47,8 @@ function retrieve_data_matrix(data)
     return data_matrix
 end
 
-"Generates a 3D interactive scatter plot using the given data"
-function generate_plot(data, output_file_path, n_clusters, name)
+"Generates a 3D interactive scatter plot using the given data with dynamic axes"
+function generate_dynamic_plot(data, output_file_path, n_clusters, name)
     p = plot(
         data,
         x=:X,
@@ -64,16 +64,7 @@ function generate_plot(data, output_file_path, n_clusters, name)
                 # aspectratio=attr(x=1, y=1, z=1),
                 xaxis_title="x: Distance (Mpc)",
                 yaxis_title="y: Distance (Mpc)",
-                zaxis_title="z: Distance (Mpc)",
-                xaxis=attr(
-                    range=[0,7000]
-                ),
-                yaxis=attr(
-                    range=[0, 7000]
-                ),
-                zaxis=attr(
-                    range=[-7000, 0]
-                )
+                zaxis_title="z: Distance (Mpc)"
             ),
             font=attr(
                 family="Courier New",
@@ -94,40 +85,16 @@ function time_log(msg)
     end
 end
 
-"Loads the distance matrix if the filepath exists. If not, it creates a distance matrix and writes to the filepath."
-function load_dist_matrix(data, filepath::String)
-    if !(isfile(filepath))
-        data_matrix = retrieve_data_matrix(data)
-        println("Creating distance matrix...")
-        time_log("Calculating distance matrix")
-        P = pairwise(Euclidean(), data_matrix, dims=2)
-        println("Saving distance matrix to '", filepath, "' for future use...")
-        save(filepath, "data", P)
-    else
-        println(string("Loading distance matrix from '", filepath, "'..."))
-        P = load(filepath, "data")
-    end
-
-    return P
-end
-
 function find_optimal_clusters(data, name)
-    R = dbscan(load_dist_matrix(data, string(pwd(), "/data/$name-distance-matrix.jld")), 2)
-    # R = dbscan(retrieve_data_matrix(data), 2)
+    # R = dbscan(load_dist_matrix(data, string(pwd(), "/data/$name-distance-matrix.jld")), 2)
+    R = dbscan(retrieve_data_matrix(data), 10, min_neighbors=15)
 
-    println(length(R))
-    println(length(getproperty.(R, :counts))) # does not work
+    println(length(R.counts))
 
-    # for i in 1:20
-    #     println(R[i])
-    # end
-    # println(length(counts(R)))
-    # println("# of Clusters: $(length(R.clusters))")
-    # println("Seeds: $(R.seeds)")
-    # println("Counts: $(R.counts)")
-
-    # data.assignments = R[1].assignments
-    # generate_plot(data, string(pwd(), "/output/$name-dbscan.html"), length(R[1].assignments), name)
+    data.assignments = R.assignments
+    # generate_plot(data, string(pwd(), "/output/$name-dbscan.html"), length(R.counts), name)
+    println("Generating plot...")
+    generate_dynamic_plot(data, string(pwd(), "/output/$name-dbscan-dynamic.html"), length(R.counts), name)
 end
 
 function main()
@@ -153,7 +120,12 @@ function main()
     println(string("Logging start time: ", now()))
     time_log("Program begins")
     
-    find_optimal_clusters(datasets[1], names[1])
+    for i in eachindex(names)
+        println("Beginning DBSCAN algorithm for $(names[i])...")
+        time_log("Beginning DBSCAN algorithm for $(names[i])")
+
+        find_optimal_clusters(datasets[i], names[i])
+    end
 
     println(string("Logging end time: ", now()))
     time_log("Program ends")
