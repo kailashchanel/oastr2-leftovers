@@ -3,9 +3,10 @@ Using the DBSCAN algorithm, group the galaxy data into diffeent clusters
 =#
 
 import Pkg
-Pkg.add(["Clustering", "Cosmology", "DataFrames", "CSV", "Unitful", "PlotlyJS", "JLD", "Distances", "Plots"])
+Pkg.add(["Clustering", "Cosmology", "DataFrames", "CSV", "Unitful", "PlotlyJS", "JLD", "Distances", "Plots", "LightGraphs", "GraphPlot", "Dates"])
 
-using Clustering, Cosmology, DataFrames, Distances, CSV, JLD, Statistics, Unitful, PlotlyJS, Dates
+using Clustering, Cosmology, DataFrames, Distances, CSV, JLD, Statistics, Unitful, PlotlyJS, LightGraphs, Dates
+import GraphPlot
 import Plots
 
 "Add radial distance values to the dataset"
@@ -48,16 +49,64 @@ function retrieve_data_matrix(data)
 end
 
 "Generates a 3D interactive scatter plot using the given data with dynamic axes"
-function generate_dynamic_plot(data, output_file_path, n_clusters, name)
-    p = plot(
-        data,
-        x=:X,
-        y=:Y, 
-        z=:Z,
-        color=:assignments,
-        type="scatter3d", 
+function generate_dynamic_plot(data, G, output_file_path, n_clusters, name)
+    # Position nodes
+    pos_x, pos_y, pos_z = GraphPlot.spring_layout(G)
+
+    edge_x = []
+    edge_y = []
+    edge_z = []
+
+    for edge in edges(G)
+        push!(edge_x, pos_x[src(edge)])
+        push!(edge_x, pos_x[dst(edge)])
+        push!(edge_y, pos_y[src(edge)])
+        push!(edge_y, pos_y[dst(edge)])
+        push!(edge_z, pos_z[src(edge)])
+        push!(edge_z, pos_z[dst(edge)])
+    end
+
+    #  Color node points by the number of connections.
+    color_map = [size(neighbors(G, node))[1] for node in 1:200]
+
+    # Create edges
+    edges_trace = scatter(
+        mode="lines",
+        x=edge_x,
+        y=edge_y,
+        z=edge_z,
+        line=attr(
+            width=0.5,
+            color="#888"
+        ),
+    )
+
+    # Create nodes
+    nodes_trace = scatter(
+        x=pos_x,
+        y=pos_y,
+        z=pos_z,
+        type="scatter3d",
         mode="markers",
+        text = [string("# of connections: ", connection) for connection in color_map],
+        marker=attr(
+            showscale=true,
+            colorscale=colors.imola,
+            color=color_map,
+            size=10,
+            colorbar=attr(
+                thickness=15,
+                title="Node Connections",
+                xanchor="left",
+                titleside="right"
+        )
+        )
+    )
+
+    p = plot(
+        [edges_trace, nodes_trace],
         Layout(
+            hovermode="closest",
             title=string("Galaxies Plotted in 3D Space (", n_clusters, " clusters): ", name), 
             scene = attr(
                 # aspectmode="cube",
@@ -87,14 +136,22 @@ end
 
 function find_optimal_clusters(data, name)
     # R = dbscan(load_dist_matrix(data, string(pwd(), "/data/$name-distance-matrix.jld")), 2)
-    R = dbscan(retrieve_data_matrix(data), 10, min_neighbors=15)
+    data_matrix = retrieve_data_matrix(data)
+
+    R = dbscan(data_matrix, 10, min_neighbors=15)
+
+    println("Entering LightGraphs code...")
+    time_log("Entering LightGraphs code...")
+    G = LightGraphs.euclidean_graph(data_matrix)
+    println("Exiting LightGraphs code...")
+    time_log("Exiting LightGraphs code...")
 
     println(length(R.counts))
 
     data.assignments = R.assignments
     # generate_plot(data, string(pwd(), "/output/$name-dbscan.html"), length(R.counts), name)
     println("Generating plot...")
-    generate_dynamic_plot(data, string(pwd(), "/output/$name-dbscan-dynamic.html"), length(R.counts), name)
+    generate_dynamic_plot(data, G, string(pwd(), "/output/$name-dbscan-network-dynamic.html"), length(R.counts), name)
 end
 
 function main()
@@ -126,6 +183,11 @@ function main()
 
         find_optimal_clusters(datasets[i], names[i])
     end
+
+    # println("Beginning DBSCAN algorithm for $(names[3])...")
+    # time_log("Beginning DBSCAN algorithm for $(names[3])")
+
+    # find_optimal_clusters(datasets[3], names[3])
 
     println(string("Logging end time: ", now()))
     time_log("Program ends")
