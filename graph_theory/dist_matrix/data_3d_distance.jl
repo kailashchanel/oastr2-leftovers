@@ -11,7 +11,7 @@ using CSV, DataFrames, Cosmology, Unitful
 
 function write_distances(distance_data, filestream)
     for row in distance_data
-        write(filestream, string(Int(row[1]), ",", Int(row[2]), ",", row[3], "\n"))
+        write(filestream, string(Int(trunc(row[1])), ",", Int(trunc(row[2])), ",", ustrip(row[3]), "\n"))
     end
 end
 
@@ -62,10 +62,12 @@ end
 "Does the same thing as the function calculate_distnaces however it is multithreaded and writes to multiple different output files"
 function calculate_distances_multithreaded(data)
     startindex = 1
-    jump = size(data)[1] / (Threads.nthreads() + 1)
+    jump = size(data)[1] / (Threads.nthreads())
     endindex = jump
 
     for i in 1:Threads.nthreads()
+        println("StartIndex: $startindex | EndIndex: $endindex")
+
         println("Spawning thread with startindex $startindex and endindex $endindex, i = $i")
         @Threads.spawn calculate_distances(data, string("output", i, ".csv"), Int(ceil(startindex)), Int(ceil(endindex)))
 
