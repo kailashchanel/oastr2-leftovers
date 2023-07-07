@@ -1,3 +1,4 @@
+#in use for analysis on complete graph. Do NOT use for MST. 
 using JLD2
 
 struct GalaxyDistance
