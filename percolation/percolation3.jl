@@ -1,3 +1,5 @@
+#Not in use. This is an alternate method using a direct implemenation of the Newmann-Ziff Algorithm
+
 import Pkg
 Pkg.add(["JLD2, Plots"])
 
