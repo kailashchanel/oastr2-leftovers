@@ -1,3 +1,5 @@
+#test of struct features from Newmann-Ziff Algorithm Paper. See paper draft for explaination. Not in use.
+
 struct QuickFind
     id :: Vector{Int}
 end
