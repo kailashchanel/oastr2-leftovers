@@ -1,3 +1,5 @@
+#Density analysis for site percolation. Once again, this is a test. 
+
 using JLD2, Plots
 
 struct QuickFind
