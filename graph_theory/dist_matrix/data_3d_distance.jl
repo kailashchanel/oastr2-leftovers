@@ -11,7 +11,7 @@ using CSV, DataFrames, Cosmology, Unitful
 
 # Set this to false if there is already a "dist" column (3D dist from the observer to the star).
 # A dist column would exist if there is, for example, random-point data.
-const CALCULATE_DIST::Bool = true
+const CALCULATE_DIST::Bool = false
 
 
 function write_distances(distance_data, filestream)
@@ -29,8 +29,8 @@ function calculate_distances(data, filename, startindex, endindex)
     filestream = open(filename, "a")
     write(filestream, "src,dst,distance\n")  # set up csv header
 
-    for i in range(startindex, endindex)
-        for j in range(i + 1, size(data)[1] - 1)
+    for i in range(startindex, endindex + 1)
+        for j in range(i + 1, size(data)[1])
             # Find the separation in the sky
             # RA and Dec are in degrees
             deltaRA = abs(data[i, "RA"] - data[j, "RA"])
