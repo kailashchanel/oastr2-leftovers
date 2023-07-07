@@ -1,4 +1,4 @@
-#in use but must be updated to recieve MST inputs.
+#TO DO: in use but must be updated to recieve MST inputs.
 
 using LightGraphs
 using Random
