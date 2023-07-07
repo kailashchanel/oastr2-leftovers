@@ -1,4 +1,5 @@
 #in use for analysis on complete graph. Do NOT use for MST. 
+#creates struct 
 using JLD2
 
 struct GalaxyDistance
