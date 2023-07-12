@@ -1,3 +1,4 @@
+#light graph function test for dist_matrix. Not in use.
 using LightGraphs, GraphPlot, Random, Plots
 
 #sample distance matrix

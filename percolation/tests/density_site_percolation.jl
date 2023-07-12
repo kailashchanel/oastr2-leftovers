@@ -1,5 +1,4 @@
-import Pkg
-Pkg.add(["JLD2, Plots"])
+#Density analysis for site percolation. Once again, this is a test. 
 
 using JLD2, Plots
 
@@ -94,6 +93,7 @@ end
 
 export QuickFind, QuickUnion, connect!, isconnected, find
 
+
 struct Percolation
     grid :: Matrix{Bool}
     li :: LinearIndices
@@ -142,10 +142,19 @@ function open!(p::Percolation, i, j)
     i == 1       && connect!(p, p.node1, p.li[i, j])
     i == p.ny    && connect!(p.wuf1, p.node2, p.li[i, j])
 
-    i > 1        && isopen(p, i-1, j) && connect!(p, p.li[i, j], p.li[i-1, j])
-    i < p.ny - 1 && isopen(p, i+1, j) && connect!(p, p.li[i, j], p.li[i+1, j])
-    j > 1        && isopen(p, i, j-1) && connect!(p, p.li[i, j], p.li[i, j-1])
-    j < p.nx - 1 && isopen(p, i, j+1) && connect!(p, p.li[i, j], p.li[i, j+1])
+    dens = number_of_open(p) / (p.ny * p.nx)
+    if i > 1 && isopen(p, i-1, j) && rand() < dens
+        connect!(p, p.li[i, j], p.li[i-1, j])
+    end
+    if i < p.ny - 1 && isopen(p, i+1, j) && rand() < dens
+        connect!(p, p.li[i, j], p.li[i+1, j])
+    end
+    if j > 1 && isopen(p, i, j-1) && rand() < dens
+        connect!(p, p.li[i, j], p.li[i, j-1])
+    end
+    if j < p.nx - 1 && isopen(p, i, j+1) && rand() < dens
+        connect!(p, p.li[i, j], p.li[i, j+1])
+    end
 end
 
 using Statistics
@@ -218,4 +227,3 @@ function galaxy_run(sorted_distance,n)
 end
 
 clusters = galaxy_run(sorted_distance,side)
-Collapse

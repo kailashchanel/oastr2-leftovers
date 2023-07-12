@@ -1,3 +1,5 @@
+#percolation test on a latice. Not in use.
+
 using Random
 
 function percolate_lattice(n::Int, p::Float64)

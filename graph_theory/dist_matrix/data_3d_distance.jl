@@ -9,9 +9,14 @@ Pkg.add(["CSV", "DataFrames", "Cosmology", "Unitful"])
 using CSV, DataFrames, Cosmology, Unitful
 
 
+# Set this to false if there is already a "dist" column (3D dist from the observer to the star).
+# A dist column would exist if there is, for example, random-point data.
+const CALCULATE_DIST::Bool = false
+
+
 function write_distances(distance_data, filestream)
     for row in distance_data
-        write(filestream, string(Int(row[1]), ",", Int(row[2]), ",", row[3], "\n"))
+        write(filestream, string(Int(trunc(row[1])), ",", Int(trunc(row[2])), ",", ustrip(row[3]), "\n"))
     end
 end
 
@@ -24,8 +29,8 @@ function calculate_distances(data, filename, startindex, endindex)
     filestream = open(filename, "a")
     write(filestream, "src,dst,distance\n")  # set up csv header
 
-    for i in range(startindex, endindex)
-        for j in range(i + 1, size(data)[1] - 1)
+    for i in range(startindex, endindex + 1)
+        for j in range(i + 1, size(data)[1])
             # Find the separation in the sky
             # RA and Dec are in degrees
             deltaRA = abs(data[i, "RA"] - data[j, "RA"])
@@ -62,10 +67,12 @@ end
 "Does the same thing as the function calculate_distnaces however it is multithreaded and writes to multiple different output files"
 function calculate_distances_multithreaded(data)
     startindex = 1
-    jump = size(data)[1] / (Threads.nthreads() + 1)
+    jump = size(data)[1] / (Threads.nthreads())
     endindex = jump
 
     for i in 1:Threads.nthreads()
+        println("StartIndex: $startindex | EndIndex: $endindex")
+
         println("Spawning thread with startindex $startindex and endindex $endindex, i = $i")
         @Threads.spawn calculate_distances(data, string("output", i, ".csv"), Int(ceil(startindex)), Int(ceil(endindex)))
 
@@ -79,10 +86,12 @@ end
 
 function main()
     println("Loading data")
-    data = CSV.read("GAMA_CZ5Unj.csv", DataFrame)
+    data = CSV.read("rand_points.csv", DataFrame)
 
-    println("Calculating radial distance")
-    add_dist!(data)
+    if (CALCULATE_DIST)
+        println("Calculating radial distance")
+        add_dist!(data)
+    end
 
     println("Calculating data groups")
     G02 = data[((data[!, "RA"] .< 38.8) .& (data[!, "RA"].>30.2) .& (data[!, "DEC"].<-3.72) .& (data[!, "DEC"].>-10.25)),:]

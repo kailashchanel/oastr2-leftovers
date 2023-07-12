@@ -1,4 +1,4 @@
-using JLD2, Plots
+#test of struct features from Newmann-Ziff Algorithm Paper. See paper draft for explaination. Not in use.
 
 struct QuickFind
     id :: Vector{Int}
@@ -140,19 +140,10 @@ function open!(p::Percolation, i, j)
     i == 1       && connect!(p, p.node1, p.li[i, j])
     i == p.ny    && connect!(p.wuf1, p.node2, p.li[i, j])
 
-    dens = number_of_open(p) / (p.ny * p.nx)
-    if i > 1 && isopen(p, i-1, j) && rand() < dens
-        connect!(p, p.li[i, j], p.li[i-1, j])
-    end
-    if i < p.ny - 1 && isopen(p, i+1, j) && rand() < dens
-        connect!(p, p.li[i, j], p.li[i+1, j])
-    end
-    if j > 1 && isopen(p, i, j-1) && rand() < dens
-        connect!(p, p.li[i, j], p.li[i, j-1])
-    end
-    if j < p.nx - 1 && isopen(p, i, j+1) && rand() < dens
-        connect!(p, p.li[i, j], p.li[i, j+1])
-    end
+    i > 1        && isopen(p, i-1, j) && connect!(p, p.li[i, j], p.li[i-1, j])
+    i < p.ny - 1 && isopen(p, i+1, j) && connect!(p, p.li[i, j], p.li[i+1, j])
+    j > 1        && isopen(p, i, j-1) && connect!(p, p.li[i, j], p.li[i, j-1])
+    j < p.nx - 1 && isopen(p, i, j+1) && connect!(p, p.li[i, j], p.li[i, j+1])
 end
 
 using Statistics
@@ -202,26 +193,46 @@ function run(n, trials)
     return Result(thresholds)
 end
 
-struct GalaxyDistance
-    idx1::Int32
-    idx2::Int32
-    distance::Float32
-end
 
-sorted_distance = load_object("sorted_distance_list.jld2")
+using Test
 
-side = Int(-.5 + sqrt(0.25+2*length(sorted_distance)))
+G1 = QuickFind(10);
+G2 = QuickUnion(10, false, false);
+G3 = QuickUnion(10, true, false);
+G4 = QuickUnion(10, false, true);
+G5 = QuickUnion(10, true, true);
 
-function galaxy_run(sorted_distance,n)
-    wuf1 = QuickUnion(n)
-    clusters = Int32[]
-    for gd in sorted_distance
-        connect!(wuf1, Int64(gd.idx1), Int64(gd.idx2))
-        numclusters = length(Set(wuf1.id))
-        #println(gd.idx1," ",gd.idx2," ",gd.distance," ",numclusters)
-        push!(clusters, Int32(numclusters))
+function test(G)
+
+    connect!(G, 1, 6)
+    connect!(G, 6, 7)
+    connect!(G, 7, 2)
+    connect!(G, 2, 3)
+    connect!(G, 3, 8)
+    
+    connect!(G, 9, 4)
+    connect!(G, 4, 5)
+    connect!(G, 5, 10)
+
+    # `pts1` should form one set of connected components and `pts2` another, respectively.
+    pts1 = [1, 2, 3, 6, 7, 8]
+    pts2 = [4, 5, 9, 10]
+    for p in pts1
+        for q in pts1
+            @test isconnected(G, p, q)
+            @test isconnected(G, q, p)
+        end
+        for q in pts2
+            @test !isconnected(G, p, q)
+            @test !isconnected(G, q, p)
+        end
     end
-    return clusters
 end
 
-clusters = galaxy_run(sorted_distance,side)
+@testset "Test" begin
+    @testset "Test QuickFind" begin test(G1) end
+    @testset "Test QuickUnion without weighting and path compression" begin test(G2) end
+    @testset "Test QuickUnion with weighting and without path compression" begin test(G3) end
+    @testset "Test QuickUnion without weighting and with path compression" begin test(G4) end
+    @testset "Test QuickUnion with weighting and path compression" begin test(G5) end
+end

@@ -1,3 +1,5 @@
+#TO DO: in use but must be updated to recieve MST inputs.
+
 using Random, StatsBase
 
 L = 100
