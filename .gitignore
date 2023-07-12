@@ -1,7 +1,7 @@
 .jld
 
 # IDE things
-/.vscode
+.vscode/
 
 # Ignore stuff in the output dir
 /output
