@@ -1,5 +1,8 @@
 .jld
 
+# It's recommended to add manifest.toml to the gitignore to prevent merge conflicts
+/Manifest.toml
+
 # IDE things
 .vscode/
 
