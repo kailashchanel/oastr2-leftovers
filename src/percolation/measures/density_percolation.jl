@@ -14,9 +14,6 @@ function write_distances(distance_data, filestream)
 end
 
 
-function write age(dist)
-
-
 "Calculate the distance from one point and every other point. Will write the output to filename"
 function calculate_distances(data, filename, startindex, endindex)
    println("Start function with filename $filename startindex $startindex endindex $endindex")
