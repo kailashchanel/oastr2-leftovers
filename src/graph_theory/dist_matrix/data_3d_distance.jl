@@ -11,7 +11,7 @@ using CSV, DataFrames, Cosmology, Unitful
 
 # Set this to false if there is already a "dist" column (3D dist from the observer to the star).
 # A dist column would exist if there is, for example, random-point data.
-const CALCULATE_DIST::Bool = false
+const CALCULATE_DIST::Bool = true
 
 
 function write_distances(distance_data, filestream)

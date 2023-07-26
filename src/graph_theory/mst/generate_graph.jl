@@ -13,7 +13,7 @@ function get_df_from_dir(dirname::String)
 
     for file in readdir(dirname)
         println("Reading file $file")
-        df = CSV.read(string(dirname, "\\", file), DataFrame)
+        df = CSV.read(string(dirname, "/", file), DataFrame)
         append!(full_df, df)
         println("Read file $file")
     end
@@ -24,7 +24,15 @@ end
 
 function generate_graph(data::DataFrame)
     println("Generating graph")
-    g = SimpleWeightedGraph(data[!, "src"], data[!, "dst"], data[!, "distance"])
+
+    # If you get an error that "src" cannot be parsed, (or something similar) it's likely that your csv file contains
+    # data from multiple runs of data_3d_distance, since data_3d_distance.jl appends instead of writes.
+    # Either prune the file or delete and re-run data_3d_distance.jl.
+    sources::Vector{Int64} = [v isa Int64 ? v : parse(Int64, v) for v in data.src]
+    destinations::Vector{Int64} = [v isa Int64 ? v : parse(Int64, v) for v in data.dst]
+    weights::Vector{Float64} = [v isa Float64 ? v : parse(Float64, v) for v in data.distance]
+
+    g = SimpleWeightedGraph(sources, destinations, weights)
     println("Graph generated")
     
     return g
@@ -54,11 +62,12 @@ function generate_mst(graph)
 end
 
 function main()
-    data = get_df_from_dir("C:\\users\\d8amo\\Desktop\\Programming\\Julia\\Astrophysics\\3D MST\\G15")
+    # Replace this to the path of a directory that *only* contains the CSV data
+    data = get_df_from_dir("C:/Users/d8amo/Desktop/Programming/Julia/Astrophysics/oastr2-leftovers/rand_points")
 
     graph = generate_graph(data)
     mst = generate_mst(graph)
-    savegraph("G15_bruteforce.lgz", mst)
+    savegraph("output.lgz", mst)
 end
 
 main()
