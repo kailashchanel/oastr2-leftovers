@@ -27,7 +27,7 @@ function calculate_distances(data, filename, startindex, endindex)
     distances = []
 
     # Remove any existing file, since this program appends instead of writes.
-    rm(filename)
+    rm(filename, force=true)  # force=true to remove any errors if the file does not exist
 
     
     filestream = open(filename, "a")
