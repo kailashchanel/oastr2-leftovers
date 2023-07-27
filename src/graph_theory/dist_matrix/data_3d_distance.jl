@@ -11,7 +11,7 @@ using CSV, DataFrames, Cosmology, Unitful
 
 # Set this to false if there is already a "dist" column (3D dist from the observer to the star).
 # A dist column would exist if there is, for example, random-point data.
-const CALCULATE_DIST::Bool = true
+const CALCULATE_DIST::Bool = false
 
 
 function write_distances(distance_data, filestream)
@@ -26,6 +26,10 @@ function calculate_distances(data, filename, startindex, endindex)
     println("Start function with filename $filename startindex $startindex endindex $endindex")
     distances = []
 
+    # Remove any existing file, since this program appends instead of writes.
+    rm(filename)
+
+    
     filestream = open(filename, "a")
     write(filestream, "src,dst,distance\n")  # set up csv header
 
