@@ -26,6 +26,10 @@ function calculate_distances(data, filename, startindex, endindex)
     println("Start function with filename $filename startindex $startindex endindex $endindex")
     distances = []
 
+    # Remove any existing file, since this program appends instead of writes.
+    rm(filename, force=true)  # force=true to remove any errors if the file does not exist
+
+    
     filestream = open(filename, "a")
     write(filestream, "src,dst,distance\n")  # set up csv header
 
