@@ -2,14 +2,11 @@
 Generates a MST from the output of the brute-force distance matrix algorithm.
 =#
 
-import Pkg
-Pkg.add(["Graphs", "SimpleWeightedGraphs", "DataFrames"])
-
 using Graphs, SimpleWeightedGraphs, CSV, DataFrames
 
 
 function get_df_from_dir(dirname::String) 
-    full_df = DataFrame(distance=[], src=[], dst=[])
+    full_df = DataFrame(dist=[], RA=[], DEC=[])
 
     for file in readdir(dirname)
         println("Reading file $file")
@@ -33,6 +30,7 @@ function generate_graph(data::DataFrame)
     weights::Vector{Float64} = [v isa Float64 ? v : parse(Float64, v) for v in data.distance]
 
     g = SimpleWeightedGraph(sources, destinations, weights)
+
     println("Graph generated")
     
     return g
@@ -44,18 +42,18 @@ function generate_mst(graph)
     mst = kruskal_mst(graph)
     println("MST generated. Length: ", length(mst))
 
-    src::Array{Int64} = []
-    dst::Array{Int64} = []
+    RA::Array{Int64} = []
+    DEC::Array{Int64} = []
     weight::Array{Float64} = []
 
     for edge in mst
-        push!(src, edge.src)
-        push!(dst, edge.dst)
+        push!(RA, edge.RA)
+        push!(DEC, edge.DEC)
         push!(weight, edge.weight)
     end
 
     println("Generating MST graph")
-    mst_graph = SimpleWeightedGraph(src, dst, weight)
+    mst_graph = SimpleWeightedGraph(RA, DEC, weight)
     println("Generated MST graph")
     
     return mst_graph
@@ -71,3 +69,4 @@ function main()
 end
 
 main()
+
