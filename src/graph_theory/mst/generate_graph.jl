@@ -6,7 +6,7 @@ using Graphs, SimpleWeightedGraphs, CSV, DataFrames
 
 
 function get_df_from_dir(dirname::String) 
-    full_df = DataFrame(dist=[], RA=[], DEC=[])
+    full_df = DataFrame(src=[], dst=[], distance=[])
 
     for file in readdir(dirname)
         println("Reading file $file")
@@ -42,18 +42,18 @@ function generate_mst(graph)
     mst = kruskal_mst(graph)
     println("MST generated. Length: ", length(mst))
 
-    RA::Array{Int64} = []
-    DEC::Array{Int64} = []
-    weight::Array{Float64} = []
+    src::Array{Int64} = []
+    dst::Array{Int64} = []
+    distance::Array{Float64} = []
 
     for edge in mst
-        push!(RA, edge.RA)
-        push!(DEC, edge.DEC)
-        push!(weight, edge.weight)
+        push!(src, edge.src)
+        push!(dst, edge.dst)
+        push!(distance, edge.weight)
     end
 
     println("Generating MST graph")
-    mst_graph = SimpleWeightedGraph(RA, DEC, weight)
+    mst_graph = SimpleWeightedGraph(src, dst, distance)
     println("Generated MST graph")
     
     return mst_graph
