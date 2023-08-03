@@ -7,6 +7,8 @@ function hausdorff_dimension(adj_matrix)
     return hausdorff_dim
 end
 
+file = CSV.read("adjacency_matrix.csv", DataFrame)
+adj_matrix = Matrix(file)
 dimension = hausdorff_dimension(adj_matrix)
 
 println("Hausdorff Dimension: ", dimension)
