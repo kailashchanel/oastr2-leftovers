@@ -6,11 +6,11 @@ using Graphs, SimpleWeightedGraphs, CSV, DataFrames
 
 
 function get_df_from_dir(dirname::String) 
-    full_df = DataFrame(dist=[], RA=[], DEC=[])
+    full_df = DataFrame(src=[], dst=[], distance=[])
 
     for file in readdir(dirname)
         println("Reading file $file")
-        df = CSV.read(string(dirname, "\\", file), DataFrame)
+        df = CSV.read(string(dirname, "/", file), DataFrame)
         append!(full_df, df)
         println("Read file $file")
     end
@@ -21,7 +21,16 @@ end
 
 function generate_graph(data::DataFrame)
     println("Generating graph")
-    g = SimpleWeightedGraph(data[!, "RA"], data[!, "DEC"], data[!, "dist"])
+
+    # If you get an error that "src" cannot be parsed, (or something similar) it's likely that your csv file contains
+    # data from multiple runs of data_3d_distance, since data_3d_distance.jl appends instead of writes.
+    # Either prune the file or delete and re-run data_3d_distance.jl.
+    sources::Vector{Int64} = [v isa Int64 ? v : parse(Int64, v) for v in data.src]
+    destinations::Vector{Int64} = [v isa Int64 ? v : parse(Int64, v) for v in data.dst]
+    weights::Vector{Float64} = [v isa Float64 ? v : parse(Float64, v) for v in data.distance]
+
+    g = SimpleWeightedGraph(sources, destinations, weights)
+
     println("Graph generated")
     
     return g
@@ -33,29 +42,31 @@ function generate_mst(graph)
     mst = kruskal_mst(graph)
     println("MST generated. Length: ", length(mst))
 
-    RA::Array{Int64} = []
-    DEC::Array{Int64} = []
-    weight::Array{Float64} = []
+    src::Array{Int64} = []
+    dst::Array{Int64} = []
+    distance::Array{Float64} = []
 
     for edge in mst
-        push!(RA, edge.RA)
-        push!(DEC, edge.DEC)
-        push!(weight, edge.weight)
+        push!(src, edge.src)
+        push!(dst, edge.dst)
+        push!(distance, edge.weight)
     end
 
     println("Generating MST graph")
-    mst_graph = SimpleWeightedGraph(RA, DEC, weight)
+    mst_graph = SimpleWeightedGraph(src, dst, distance)
     println("Generated MST graph")
     
     return mst_graph
 end
 
-# data = get_df_from_dir("/Volumes/FMRIDATA/output09.csv")
-data = CSV.read("/Volumes/FMRIDATA/output09.csv", DataFrame, types = Dict(:src => Int64, :dst => Int64, :distance => Float32))
-graph = generate_graph(data)
-data = 0
-mst = generate_mst(graph)
-savegraph("G09_bruteforce.lgz", mst)
+function main()
+    # Replace this to the path of a directory that *only* contains the CSV data
+    data = get_df_from_dir("C:/Users/d8amo/Desktop/Programming/Julia/Astrophysics/oastr2-leftovers/rand_points")
 
+    graph = generate_graph(data)
+    mst = generate_mst(graph)
+    savegraph("output.lgz", mst)
+end
 
+main()
 

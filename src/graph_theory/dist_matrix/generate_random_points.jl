@@ -3,7 +3,7 @@ This file generates random points in the style of a GAMA csv file to be read by 
 =#
 
 
-const NUM_GALAXIES::Int = 10000  # The number of galaxies to generate
+const NUM_GALAXIES::Int = 78000  # The number of galaxies to generate. 78k is also around the num. of galaxies in G15
 const MAX_DISTANCE_MPC::Float64 = 1000  # The maximum distance galaxies can be, in megaparsecs
 
 # Parameters for the G15 region
