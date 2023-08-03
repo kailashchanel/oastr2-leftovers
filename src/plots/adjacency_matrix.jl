@@ -17,6 +17,7 @@ function dataframe_to_adjacency_matrix(df::DataFrame)
         
         println("Adding edges with given distance")
         adjacency_matrix[src_index, dst_index] = distance
+        adjacency_matrix[dst_index, src_index] = distance 
     end
     
     return adjacency_matrix, nodes
@@ -30,10 +31,13 @@ end
 
 function main()
     println("Loading data")
-    data = CSV.read("output1.csv", DataFrame)
-    dataframe_to_adjacency_matrix(data)
+    data = CSV.read("G09_bruteforce.lgz", DataFrame)
+    df = data[:, 1:3]
+    df_new = rename(df, :1 => "src", :2 => "dst", :3 => "distance")
 
-    adj_matrix, nodes = dataframe_to_adjacency_matrix(data)
+    dataframe_to_adjacency_matrix(df_new)
+
+    adj_matrix, nodes = dataframe_to_adjacency_matrix(df_new)
     
     filename = "adjacency_matrix.csv"
     save_adjacency_matrix_to_csv(Matrix(adj_matrix), nodes, filename)
