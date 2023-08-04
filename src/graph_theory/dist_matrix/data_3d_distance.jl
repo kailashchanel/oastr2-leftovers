@@ -107,7 +107,7 @@ function main()
     println("Calculating distance matrix")
     calculate_distances_multithreaded(G15)
     
-    println("Done")
+    println("Done with the main thread. Please keep the program open, since other threads need to complete.")
 end
 
 
