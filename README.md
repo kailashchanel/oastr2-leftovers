@@ -16,3 +16,7 @@ TODO: provide the specific download link instead of the homepage to GAMA
 This code is structured as a bunch of separate programs. There is no "one program" to run to run the entire analysis. Notes on what each program does can be found in a multi-line comment at the top each file.
 
 TODO: create a bash script that will run all analysis with a single `./run.sh` command
+
+## Requirements
+
+This repository is built with Julia version 1.9.2 in mind.
