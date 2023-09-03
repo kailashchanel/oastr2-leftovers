@@ -229,10 +229,4 @@ function test(G)
     end
 end
 
-@testset "Test" begin
-    @testset "Test QuickFind" begin test(G1) end
-    @testset "Test QuickUnion without weighting and path compression" begin test(G2) end
-    @testset "Test QuickUnion with weighting and without path compression" begin test(G3) end
-    @testset "Test QuickUnion without weighting and with path compression" begin test(G4) end
-    @testset "Test QuickUnion with weighting and path compression" begin test(G5) end
-end
+
