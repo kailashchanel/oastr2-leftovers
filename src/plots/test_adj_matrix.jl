@@ -5,9 +5,7 @@ function is_square(adj_matrix)
     return rows == cols
 end
 
-# Example usage:
-
-adj_matrix = CSV.read("adjacency_matrix.csv", DataFrame)  # Sample square adjacency matrix
+adj_matrix = CSV.read("adjacency_matrix.csv", DataFrame)  
 if is_square(adj_matrix)
     println("The adjacency matrix is square.")
 else
