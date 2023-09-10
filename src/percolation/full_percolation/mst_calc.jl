@@ -17,9 +17,6 @@ end
 function generate_graph(data::DataFrame)
     println("Generating graph")
 
-    # If you get an error that "src" cannot be parsed, (or something similar) it's likely that your csv file contains
-    # data from multiple runs of data_3d_distance, since data_3d_distance.jl appends instead of writes.
-    # Either prune the file or delete and re-run data_3d_distance.jl.
     sources::Vector{Int64} = [v isa Int64 ? v : parse(Int64, v) for v in data.src]
     destinations::Vector{Int64} = [v isa Int64 ? v : parse(Int64, v) for v in data.dst]
     weights::Vector{Float64} = [v isa Float64 ? v : parse(Float64, v) for v in data.distance]
