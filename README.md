@@ -1,6 +1,6 @@
 # Graph Theoretic Approach to Investigating the Critical Thresholds At Which The Galaxy Filamentary Structure Forms
 
-This is the code for a cosmology study primarily using Julia. This study aims to find the critical density (using percolation theory) that galaxy filaments form at. You can view the paper here: [link to paper, only put when published].
+This is the code for a cosmology study primarily using Julia. This study aims to find the critical density (using percolation theory) that galaxy filaments form at. You can view the paper here: [https://arxiv.org/abs/2310.20184].
 
 ![](https://github.com/AlexanderJCS/JANGL/assets/98898166/0436f41f-7651-492a-8a57-9b154368ba13)
 An image of a galaxy cluster in the GAMA datset.
